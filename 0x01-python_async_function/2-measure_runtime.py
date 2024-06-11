@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-import asyncio
-import time
-
 """
 This module contains a function asynchronously measures the approximate total
 execution time of running wait_n(n, max_delay) and returns the average time
 per coroutine (total_time / n).
 """
+
+import asyncio
+import time
 
 wait_n = __import__('1-concurrent_coroutines').wait_n
 
