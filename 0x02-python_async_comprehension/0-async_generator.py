@@ -14,9 +14,10 @@ the specified range.
 
 import asyncio
 import random
+from typing import Generator
 
 
-async def async_generator():
+async def async_generator() -> Generator[float, None, None]:
     """
     An asynchronous generator that yields random floating-point numbers between
     0.0 (inclusive) and 10.0 (exclusive) with a one-second delay between
