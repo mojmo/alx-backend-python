@@ -27,3 +27,19 @@ class TestAccessNestedMap(unittest.TestCase):
             expected: The expected value retrieved from the nested map.
         """
         self.assertEqual(access_nested_map(nested_map, path), expected)
+
+    @parameterized.expand([
+        ({}, ("a",), "a"),
+        ({"a": 1}, ("a", "b"), "b")
+    ])
+    def test_access_nested_map_exception(self, nested_map, path, expected):
+        """Test that a KeyError is raised.
+
+        Args:
+            nested_map: The nested map (dictionary) to access.
+            path: A tuple of keys representing the path to the desired value.
+            expected: The expected value retrieved from the nested map.
+        """
+        with self.assertRaises(KeyError) as cm:
+            access_nested_map(nested_map, path)
+        self.assertEqual(repr(cm.exception), f"KeyError('{expected}')")
