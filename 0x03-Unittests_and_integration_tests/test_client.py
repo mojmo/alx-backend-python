@@ -2,10 +2,11 @@
 
 """This script defines unit tests for the `GithubOrgClient.org` class."""
 
-from parameterized import parameterized
+from client import GithubOrgClient
+from fixtures import TEST_PAYLOAD
+from parameterized import parameterized, parameterized_class
 import unittest
 from unittest.mock import patch, PropertyMock
-from client import GithubOrgClient
 
 
 class TestGithubOrgClient(unittest.TestCase):
@@ -99,3 +100,47 @@ class TestGithubOrgClient(unittest.TestCase):
         """
         result = GithubOrgClient.has_license(repo, license_key)
         self.assertEqual(result, expected_result)
+
+
+@parameterized_class(
+    ("org_payload", "repos_payload", "expected_repos", "apache2_repos"),
+    TEST_PAYLOAD
+)
+class TestIntegrationGithubOrgClient(unittest.TestCase):
+    """Integration tests for GithubOrgClient using fixtures"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Setup patcher for requests.get"""
+        config = {
+            'return_value.json.side_effect': [
+                cls.org_payload,
+                cls.repos_payload,
+                cls.org_payload,
+                cls.repos_payload
+            ]
+        }
+        cls.get_patcher = patch('requests.get', **config)
+        cls.mock = cls.get_patcher.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        """Stop the patcher"""
+        cls.get_patcher.stop()
+
+    def test_public_repos(self):
+        """Test public_repos method without license filter"""
+        client = GithubOrgClient("google")
+        self.assertEqual(client.org, self.org_payload)
+        self.assertEqual(client.repos_payload, self.repos_payload)
+        self.assertEqual(client.public_repos(), self.expected_repos)
+        self.assertEqual(client.public_repos("XLICENSE"), [])
+        self.mock.assert_called()
+
+    def test_public_repos_with_license(self):
+        """Test public_repos method with license filter"""
+        client = GithubOrgClient("google")
+        self.assertEqual(client.public_repos(), self.expected_repos)
+        self.assertEqual(client.public_repos("XLICENSE"), [])
+        self.assertEqual(client.public_repos("apache-2.0"), self.apache2_repos)
+        self.mock.assert_called()
