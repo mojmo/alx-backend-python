@@ -1,15 +1,23 @@
 #!/usr/bin/env python3
 
-"""This script defines unit tests for the `access_nested_map` and
-`get_json` functions.
+"""This script defines unit tests for the `access_nested_map`, `get_json`,
+and `memoize` functions.
+
+The `access_nested_map` function retrieves a value from a nested map
+(dictionary) based on a provided path (a sequence of keys).
+
+The `get_json` function retrieves JSON data from a remote URL.
+
+The `memoize` decorator caches the result of a function call.
+
 This test suite uses parameterized tests to verify the functionality
-of both functions.
+of all functions.
 """
 
 from parameterized import parameterized
 import unittest
 from unittest.mock import patch
-from utils import access_nested_map, get_json
+from utils import access_nested_map, get_json, memoize
 
 
 class TestAccessNestedMap(unittest.TestCase):
@@ -66,3 +74,30 @@ class TestGetJson(unittest.TestCase):
             result = get_json(test_url)
             self.assertEqual(result, test_payload)
             mock_get.assert_called_once_with(test_url)
+
+
+class TestMemoize(unittest.TestCase):
+    """Test suite for the `memoize` decorator."""
+
+    def test_memoize(self):
+        """Tests that the `memoize` decorator caches function calls."""
+
+        class TestClass:
+
+            def a_method(self):
+                return 42
+
+            @memoize
+            def a_property(self):
+                return self.a_method()
+
+        test_obj = TestClass()
+
+        # Patch the a_method to verify it's called only once
+        with patch.object(test_obj, "a_method") as mock_method:
+            # Call the memoized property twice
+            result1 = test_obj.a_property
+            result2 = test_obj.a_property
+
+            self.assertEqual(result1, result2)
+            mock_method.assert_called_once_with()
